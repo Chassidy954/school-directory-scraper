@@ -257,7 +257,7 @@ if __name__ == "__main__":
     # Run the generic scraper using the predefined configuration
     run_scraper_with_config(WEBSITE_CONFIG, test_file_name)
 
-    # # Clean up the dummy file
-    # if os.path.exists(test_file_name):
-    #     os.remove(test_file_name)
-    #     print(f"\nCleaned up '{test_file_name}'.")
+    # Clean up the dummy file
+    if os.path.exists(test_file_name):
+         os.remove(test_file_name)
+         print(f"\nCleaned up '{test_file_name}'.")
