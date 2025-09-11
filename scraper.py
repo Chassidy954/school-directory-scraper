@@ -5,6 +5,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
+from selenium.webdriver.firefox.options import Options
 import time
 import re
 import os
@@ -109,7 +110,12 @@ def run_scraper_with_config(config, input_file):
 
     try:
         print("Initializing web browser...")
-        driver = webdriver.Firefox()
+    
+        options = Options()
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0 (Python Web Scraper - Contact: your.email@example.com)"
+        options.add_argument(f"user-agent={user_agent}")
+        driver = webdriver.Firefox(options=options)
+        
         driver.maximize_window()
         print("Browser ready.")
     except Exception as e:
@@ -162,10 +168,17 @@ def run_scraper_with_config(config, input_file):
                     )
                     
                     for link in result_links:
-                        if search_term.lower() in link.text.lower():
-                            link.click()
-                            link_found = True
-                            break
+                        try:
+                            if search_term.lower() in link.text.lower():
+                                link.click()
+                                link_found = True
+                                break
+                        except StaleElementReferenceException:
+                            result_links = WebDriverWait(driver, 10).until(
+                                EC.presence_of_all_elements_located((By.CSS_SELECTOR, config['search_results_link_selector']))
+                            )
+                            continue
+                            
                     if not link_found:
                         print(f"    No matching link found for '{original_term}'. Skipping.")
                         skipped_items.append(f"{original_term} (No matching link)")
@@ -238,26 +251,32 @@ def run_scraper_with_config(config, input_file):
             for skipped in skipped_items:
                 print(f"- {skipped}")
                 
-            with open("skipped_items.txt", "w") as f:
+            file_path = os.path.join(os.getcwd(), "skipped_items.txt")
+            with open(file_path, "w") as f:
                 for skipped in skipped_items:
                     f.write(skipped + "\n")
             print("\nSkipped items also saved to 'skipped_items.txt'")
 
-# --- How to run the script ---
-if __name__ == "__main__":
+def main():
+    """
+    Main function to run the scraper.
+    """
     test_file_name = 'sample_data.xlsx'
     
     # Create a dummy file for demonstration
-    pd.DataFrame({
-        'District Name': ['Los Angeles Unified', 'San Francisco Unified', 'Manteca Unified', 'Non-existent District'],
-        'Other Data': ['Info1', 'Info2', 'Info3', 'Info4']
-    }).to_excel(test_file_name, index=False)
-    print(f"Created a sample '{test_file_name}' for testing.")
+    if not os.path.exists(test_file_name):
+        pd.DataFrame({
+            'District Name': ['Los Angeles Unified', 'San Francisco Unified', 'Manteca Unified', 'Non-existent District'],
+            'Other Data': ['Info1', 'Info2', 'Info3', 'Info4']
+        }).to_excel(test_file_name, index=False)
+        print(f"Created a sample '{test_file_name}' for testing.")
     
-    # Run the generic scraper using the predefined configuration
     run_scraper_with_config(WEBSITE_CONFIG, test_file_name)
 
-    # Clean up the dummy file
+    # Delete the dummy file
     if os.path.exists(test_file_name):
-         os.remove(test_file_name)
-         print(f"\nCleaned up '{test_file_name}'.")
+        os.remove(test_file_name)
+        print(f"\nCleaned up '{test_file_name}'.")
+
+if __name__ == "__main__":
+    main()
