@@ -31,10 +31,6 @@ WEBSITE_CONFIG = {
 }
 
 def extract_contact_info(td_element):
-    """
-    Extracts name, phone, and email from a given td element.
-    Returns a tuple (name, phone, email), with "N/A" for missing data.
-    """
     name = "N/A"
     phone = "N/A"
     email = "N/A"
@@ -61,9 +57,6 @@ def extract_contact_info(td_element):
     return name, phone, email
 
 def clean_search_term(term):
-    """
-    Removes common trailing terms to improve search accuracy.
-    """
     cleaned_name = term.strip()
     cleaned_name = re.sub(r'\s+school\s+district$', '', cleaned_name, flags=re.IGNORECASE).strip()
     cleaned_name = re.sub(r'\s+district$', '', cleaned_name, flags=re.IGNORECASE).strip()
@@ -71,15 +64,6 @@ def clean_search_term(term):
     return cleaned_name
 
 def run_scraper_with_config(config, input_file):
-    """
-    A reusable web scraping function that reads a list of items from an Excel file,
-    searches for each item on a website, navigates to its detail page, scrapes
-    specified contact information, and updates the original Excel file.
-    
-    Args:
-        config (dict): A dictionary containing all website-specific selectors and URLs.
-        input_file (str): Path to the Excel file containing the list of items to search.
-    """
     print(f"Loading search terms from '{input_file}'...")
     try:
         df = pd.read_excel(input_file)
@@ -258,9 +242,6 @@ def run_scraper_with_config(config, input_file):
             print("\nSkipped items also saved to 'skipped_items.txt'")
 
 def main():
-    """
-    Main function to run the scraper.
-    """
     test_file_name = 'sample_data.xlsx'
     
     # Create a dummy file for demonstration
